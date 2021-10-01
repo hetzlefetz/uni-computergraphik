@@ -18,26 +18,27 @@ require(["dojo", "dojo/parser", "dojo/domReady!"], function (dojo) {
     debug: true,
     cacheBust: new Date(),
     waitSeconds: 5,
-    // Base URL replaces the path to dojo as default,
-    // When dojo come from the local file-system,
-    // we need the path to dojo to load siblings like dijit.
-    // Thus the path must then be reset in packages.
-    // baseUrl: "cog1/",
-    // Set absolute path to dojo packages if not linked via http.
-    // packages:[
-    // {
-    // name:'dojo',
-    // //location:'/Users/felixgers/BHT/software/dojo-release-xxxx/dojo'
-    // location:'/Users/felixgers/BHT/src/cog1/cog1_JS_template/dojo-release-xxxx/dojo'
-    // },{
-    // name:'dijit',
-    // //location:'/Users/felixgers/BHT/software/dojo-release-xxxx/dijit'
-    // location:'/Users/felixgers/BHT/src/cog1/cog1_JS_template/dojo-release-xxxx/dijit'
-    // }],
+
+    packages: [
+      {
+        name: "dojo",
+        location: `${window.location.href.replace(
+          "index.html",
+          ""
+        )}/lib/dojo-release-1.16.4/dojo`,
+      },
+      {
+        name: "dijit",
+        location: `${window.location.href.replace(
+          "index.html",
+          ""
+        )}/lib/dojo-release-1.16.4/dijit`,
+      },
+    ],
     // If the local path to dojo is kept, we can set an absolute path to
     // the cog1 project instead.
     paths: {
-      cog1: `${window.location.href}/../cog1`,
+      cog1: `${window.location.href.replace("index.html", "")}/cog1`,
     },
     // Add one entry for each custom module.
     // This is, among others, necessary to apply the path parameter.
