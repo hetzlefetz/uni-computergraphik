@@ -37,7 +37,7 @@ require(["dojo", "dojo/parser", "dojo/domReady!"], function (dojo) {
     // If the local path to dojo is kept, we can set an absolute path to
     // the cog1 project instead.
     paths: {
-      cog1: "..\\..\\..\\cog1",
+      cog1: `${window.location.href}/../cog1`,
     },
     // Add one entry for each custom module.
     // This is, among others, necessary to apply the path parameter.
