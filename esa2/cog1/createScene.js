@@ -20,10 +20,10 @@ define(["exports", "scenegraph", "animation"], function (
    *
    */
   function init() {
-    var cubeNode = scenegraph.createNodeWithModel("teapot", "teapot", {
-      scale: 10,
+    var cubeNode = scenegraph.createNodeWithModel("myModel", "myModel", {
+      scale: 40,
     });
-    cubeNode.rotateTo([1.6, -3.87, 0]);
+    //  cubeNode.rotateTo([1.6, -3.87, 0]);
 
     // BEGIN exercise myModel
 
