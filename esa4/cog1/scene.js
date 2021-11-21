@@ -436,7 +436,7 @@ define([
       shader.setPolygon(p);
 
       // Fill polygon.
-      if (true) {
+      if (fill) {
         raster.scanlineFillPolygon(
           vertices,
           polygon,

@@ -6,8 +6,7 @@
  * @namespace cog1
  * @module raster
  */
-define(["exports", "shader", "framebuffer", "data", "glMatrix"], function (
-  //
+define(["exports", "shader", "framebuffer", "data", "glMatrix"], function ( //
   exports,
   shader,
   framebuffer,
@@ -30,7 +29,7 @@ define(["exports", "shader", "framebuffer", "data", "glMatrix"], function (
   var D = 1;
   // Pre-calculate for speed-up.
   // 1 / C.
-  var inverseC = 1 / C;
+  var inverseC;
   // A / C.
   var AdivC;
 
@@ -92,12 +91,12 @@ define(["exports", "shader", "framebuffer", "data", "glMatrix"], function (
    * @parameter [only for textureing] edgeStartTextureCoord, edgeEndTextureCoord : Texture uv-vectors (not the indices) for edge currently processed.
    */
   function drawLineBresenham(
-    x0,
-    y0,
-    z0,
-    x1,
-    y1,
-    z1,
+    startX,
+    startY,
+    startZ,
+    endX,
+    endY,
+    endZ,
     color,
     storeIntersectionForScanlineFill,
     edgeStartVertexIndex,
@@ -108,14 +107,14 @@ define(["exports", "shader", "framebuffer", "data", "glMatrix"], function (
     // Let endX be larger than startX.
     // In this way on a shared edge between polygons the same left most fragment
     // is stored as intersection and the will never be a gap on a step of the edge.
-    if (x1 < x0) {
+    if (endX < startX) {
       return drawLineBresenham(
-        x1,
-        y1,
-        z1,
-        x0,
-        y0,
-        z0,
+        endX,
+        endY,
+        endZ,
+        startX,
+        startY,
+        startZ,
         color,
         storeIntersectionForScanlineFill,
         edgeEndVertexIndex,
@@ -132,44 +131,80 @@ define(["exports", "shader", "framebuffer", "data", "glMatrix"], function (
       color.rgbaShaded[3] = color.rgba[3];
     }
 
-    // BEGIN exercise Bresenham
+    var dX = endX - startX;
+    var dY = endY - startY;
+    var dXAbs = Math.abs(dX);
+    var dYAbs = Math.abs(dY);
 
-    if (x0 == x1 && y0 == y1) return; //Dont draw points
+    // Determine the direction to step.
+    var dXSign = dX >= 0 ? 1 : -1;
+    var dYSign = dY >= 0 ? 1 : -1;
 
+    // shorthands for speedup.
+    var dXAbs2 = 2 * dXAbs;
+    var dYAbs2 = 2 * dYAbs;
+    var dXdYdiff2 = 2 * (dXAbs - dYAbs);
+    var dYdXdiff2 = 2 * (dYAbs - dXAbs);
+
+    // Decision variable.
+    var e;
+    // Loop variables.
+    var x = startX;
+    var y = startY;
+    var z = startZ;
+
+    // z is linearly interpolated with delta dz in each step of the driving variable.
+    var dz;
+
+    // Prepare bi-linear interpolation for shading and textureing.
+    // Interpolated weight in interval [0,1] of the starting- and end-point of the current edge.
+    // The weight is the relative distance form the starting point.
+    // It is stored with an intersection for interpolation used for shading and textureing.
+    // The interpolation step is done in synchronous to the driving variable.
     var interpolationWeight = 0;
-    var dx = Math.abs(x1 - x0);
-    var dy = Math.abs(y1 - y0);
-    var yStart = y0;
-    var sx = x0 < x1 ? 1 : -1;
-    var sy = y0 < y1 ? 1 : -1;
+    var deltaInterpolationWeight;
 
-    var err = dx - dy;
+    // BEGIN exercise Bresenham
+    // Comment out the next two lines.
+    drawLine(startX, startY, endX, endY, color);
 
-    while (true) {
-      framebuffer.set(x0, y0, getZ(x0, y0), color);
-
-      if (x0 === x1 && y0 === y1) break;
-      var e2 = 2 * err;
-      if (e2 > -dy) {
-        err -= dy;
-        x0 += sx;
+    var x0 = startX;
+    var y0 = startY;
+    var n = 0;
+    var dx = endX - startX;
+    var dy = endY - startY;
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      var e1 = Math.abs(dx) - Math.abs(dy);
+      while (x0 != endX) {
+        n = n + 1;
+        e1;
       }
-      if (e2 < dx) {
-        err += dx;
-        y0 += sy;
-      }
-      if (y0 != yStart)
-        addIntersection(
-          x0,
-          y0,
-          getZ(x0, y0),
-          interpolationWeight,
-          edgeStartVertexIndex,
-          edgeEndVertexIndex,
-          edgeStartTextureCoord,
-          edgeEndTextureCoord
-        );
     }
+
+    // Skip it, if the line is just a point.
+
+    // Optionally draw start point as is the same
+    // as the end point of the previous edge.
+    // In any case, do not add an intersection for start point here,
+    // this should happen later in the scanline function.
+
+    // Distinction of cases for driving variable.
+
+    // x is driving variable.
+
+    // Do not add intersections for points on horizontal line
+    // and not the end point, which is done in scanline.
+
+    //framebuffer.set(x, y, getZ(x, y), color);
+
+    // y is driving variable.
+
+    // Add every intersection as there can be only one per scan line.
+    // but not the end point, which is done in scanline.
+
+    //framebuffer.set(x, y, getZ(x, y), color);
+
+    // END exercise Bresenham
   }
 
   /**
@@ -181,7 +216,6 @@ define(["exports", "shader", "framebuffer", "data", "glMatrix"], function (
    *
    */
   function scanlineStrokePolygon(vertices, polygon, color) {
-    clearIntersections();
     // Loop over vertices/edges in polygon.
     for (var v = 0; v < polygon.length; v++) {
       // Determine start st and end point end of edge.
@@ -194,6 +228,10 @@ define(["exports", "shader", "framebuffer", "data", "glMatrix"], function (
     }
   }
 
+  /**
+   * Called from scanline as preparation.
+   * Call Bresenham an all edges to fill scanlineIntersection data structure.
+   */
   function assembleIntersectionForScanline(
     vertices,
     polygon,
@@ -230,80 +268,39 @@ define(["exports", "shader", "framebuffer", "data", "glMatrix"], function (
 
     // For the start edge we need the last edge with derivative !=0,
     // Pre-calculate the derivatives for last edge !=0 of polygon.
-    for (var v = polygon.length; v > 0; v--) {
-      if (
-        calcDerivative(vertices[polygon[v]], vertices[polygon[v - 1]]) !== 0
-      ) {
-        lastDerivative = calcDerivative(vertices[polygon[v]]);
-        break;
-      }
-    }
 
     // Also after the rasterization with floor we need a valid triangle.
     // Thus we check if lastDerivative is defined and return if(!lastDerivative).
-    //if(!lastDerivative) return;
 
     // First raster only the edges and, if requested, store intersections for filling.
     // Loop over vertices/edges in polygon.
-    for (var v = 0; v < polygon.length; v++) {
-      // Determine start and end point of edge.
-      var st = vertices[polygon[v]];
 
-      // Connect edge to next or to first vertex to close the polygon.
-      var nextVertexIndex = v < polygon.length - 1 ? v + 1 : 0;
-      var end = vertices[polygon[nextVertexIndex]];
+    // Determine start and end point of edge.
 
-      // Convert parameters to integer values.
-      // Use Math.floor() for integer cast and rounding of X-Y values.
-      // Leave Z as floating point for comparisons in z-buffer.
-      currX = Math.floor(st[0]);
-      currY = Math.floor(st[1]);
-      currZ = st[2];
+    // Connect edge to next or to first vertex to close the polygon.
 
-      nextX = Math.floor(end[0]);
-      nextY = Math.floor(end[1]);
-      nextZ = end[0];
+    // Convert parameters to integer values.
+    // Use Math.floor() for integer cast and rounding of X-Y values.
+    // Leave Z as floating point for comparisons in z-buffer.
 
-      var edgeStartVertexIndex = st;
-      var edgeEndVertexIndex = end;
+    // Set texture coordinate uv-vector/array of the current edge for later interpolation.
 
-      // Set texture coordinate uv-vector/array of the current edge for later interpolation.
+    //drawLineBresenham(currX, currY, currZ, nextX, nextY, nextZ, color, true, edgeStartVertexIndex, edgeEndVertexIndex, edgeStartTextureCoord, edgeEndTextureCoord);
 
-      drawLineBresenham(
-        currX,
-        currY,
-        currZ,
-        nextX,
-        nextY,
-        nextZ,
-        color,
-        true,
-        edgeStartVertexIndex,
-        edgeEndVertexIndex
-      );
+    // Calculate current and save last derivative.
+    //console.log("derivative:" + derivative + " lastDerivative " + lastDerivative);
 
-      // Calculate current and save last derivative.
-      derivative = calcDerivative(currY, nextY);
+    // Skip horizontal edges.
 
-      // Skip horizontal edges.
-      if (derivative == 0) {
-        continue;
-      }
+    // Add end point of non horizontal edges.
+    //console.log("Add end point:" + nextX + ", " + nextY);
 
-      // Add end point of non horizontal edges.
-      if (derivative != 0) {
-        addIntersection(nextX, nextY, nextZ);
-      }
-      //console.log("Add end point:" + nextX + ", " + nextY);
+    // Last derivative has to exist, always, also for the first edge.
 
-      if (derivative + lastDerivative == 0 && derivative != 0) {
-        // Add start point if edges are non monotonous, Peek point.
-        addIntersection(currX, currY, currZ);
-      }
+    // Add start point if edges are non monotonous, Peek point.
 
-      // If current derivative ==0 then keep the last one.
-      lastDerivative = derivative;
-    }
+    // If current derivative ==0 then keep the last one.
+
     // END exercise Scanline
     // END exercise Texture
   }
@@ -492,79 +489,57 @@ define(["exports", "shader", "framebuffer", "data", "glMatrix"], function (
 
     // Fill polygon line by line using the scanline algorithm.
     // Loop over non empty scan lines.
-    for (var y = 0; y < scanlineIntersection.length; y++) {
-      if (!scanlineIntersection[y]) continue;
 
-      var currentLine = scanlineIntersection[y];
+    // // Do (or skip) some safety check.
+    // if ((line.length < 2) || (line.length % 2)) {
+    // console.log("Error in number of intersection (" + line.length + ") in line: " + y);
+    // }
 
-      // // Do (or skip) some safety check.
-      // if ((line.length < 2) || (line.length % 2)) {
-      // console.log("Error in number of intersection (" + line.length + ") in line: " + y);
-      // }
+    // Order intersection in scanline.
 
-      // Order intersection in scanline.
-      scanlineIntersection[y].sort(function (a, b) {
-        return a - b;
-      });
+    // Loop over intersections in pairs of two.
 
-      // Loop over intersections in pairs of two.
-      for (var pair = 0; pair <= currentLine.length; pair++) {
-        var xbegin = currentLine[pair];
-        var xfinish = currentLine[pair + 1];
-        if (!xfinish) continue;
-        // Calculate interpolation variables for current scanline.
-        // Necessary for z-buffer, shading and texturing.
+    // Calculate interpolation variables for current scanline.
+    // Necessary for z-buffer, shading and texturing.
 
-        if (xbegin.x > xfinish.x) {
-          var xtemp = xbegin;
-          xbegin = xfinish;
-          xfinish = xtemp;
-        }
+    // Fill line section inside polygon, loop x.
 
-        // Fill line section inside polygon, loop x.
-        for (var x = xbegin.x; x < xfinish.x; x++) {
-          framebuffer.set(x, y, 0, color);
-        }
-        pair++;
+    // Set z shorthand.
 
-        // Set z shorthand.
+    // Do horizontal clipping test (true if passed).
+    //horizontalClippingTest = (x >= 0) && (x < width);
 
-        // Do horizontal clipping test (true if passed).
-        //horizontalClippingTest = (x >= 0) && (x < width);
+    // Do a z-buffer test.
+    // to skip the shaderFunction if it is not needed.
+    // This is not perfect as we still shade fragments
+    // that will not survive the frame, because
+    // the z-buffer is not fully build up.
+    // The Solution would be to use deferred-rendering.
+    // The z-Buffer Test could also be skipped, if
+    // there is only one convex model and we already do back-face culling.
+    // if(horizontalClippingTest) {
+    // zTest = framebuffer.zBufferTest(x, y, z, color);
+    // }
+    // // Fill (and shade) fragment it passed all tests.
+    // if(zTest && horizontalClippingTest) {
+    // // Get color from texture.
+    // if(texture != null) {
+    // texture.sample(interpolationData.uvVec, color);
+    // }
+    // shadingFunction(color, interpolationData.weightOnScanline);
+    //
+    // // framebuffer.set without z-Test and dirty rectangle adjust.
+    //
+    // }
 
-        // Do a z-buffer test.
-        // to skip the shaderFunction if it is not needed.
-        // This is not perfect as we still shade fragments
-        // that will not survive the frame, because
-        // the z-buffer is not fully build up.
-        // The Solution would be to use deferred-rendering.
-        // The z-Buffer Test could also be skipped, if
-        // there is only one convex model and we already do back-face culling.
-        // if(horizontalClippingTest) {
-        // zTest = framebuffer.zBufferTest(x, y, z, color);
-        // }
-        // // Fill (and shade) fragment it passed all tests.
-        // if(zTest && horizontalClippingTest) {
-        // // Get color from texture.
-        // if(texture != null) {
-        // texture.sample(interpolationData.uvVec, color);
-        // }
-        // shadingFunction(color, interpolationData.weightOnScanline);
-        //
-        // // framebuffer.set without z-Test and dirty rectangle adjust.
-        //
-        // }
+    // Step interpolation variables on current scanline.
+    // Even failing the z-buffer test we have to perform the interpolation step.
+    // Necessary for z-buffer, shading and texturing.
+    interpolationStepOnScanline(texture);
 
-        // Step interpolation variables on current scanline.
-        // Even failing the z-buffer test we have to perform the interpolation step.
-        // Necessary for z-buffer, shading and texturing.
-        interpolationStepOnScanline(texture);
-
-        // End of loop over x for one scanline segment between two intersections.
-        // End of loop over intersections on one scanline.
-      }
-      // End of loop over all scanlines.
-    }
+    // End of loop over x for one scanline segment between two intersections.
+    // End of loop over intersections on one scanline.
+    // End of loop over all scanlines.
 
     // END exercise Scanline
   }

@@ -20,7 +20,10 @@ define(["exports", "scenegraph", "animation"], function (
    *
    */
   function init() {
-    var cubeNode = scenegraph.createNodeWithModel("cube", "cube");
+    var cubeNode = scenegraph.createNodeWithModel(
+      "insideOutPoly",
+      "insideOutPoly"
+    );
 
     // BEGIN exercise myModel
 
