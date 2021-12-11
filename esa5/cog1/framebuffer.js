@@ -148,6 +148,7 @@ define(["exports", "scene"], function (exports, scene) {
       zBuf[indexZBuf] = z;
       return true;
     }
+    console.log("Skipping because  zBuff contains greater value");
     return false;
     // Guess some decent epsilon (which may be >1 despite the name).
 
