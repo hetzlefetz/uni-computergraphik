@@ -584,7 +584,7 @@ define(["exports", "shader", "framebuffer", "data", "glMatrix"], function (
           pair.maxX,
           i,
           pair.endZ,
-          data.getColorByName("red"),
+          color,
           true,
         );
       });

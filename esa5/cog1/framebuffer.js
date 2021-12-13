@@ -142,13 +142,13 @@ define(["exports", "scene"], function (exports, scene) {
     // Use some small epsilon to determine z-buffer fights
     // in favor of the the polygon processed first or last (depending on sign).
     // Epsilon depends on the z-range of the scene.
-    if (zBuf[indexZBuf] < z + 10) {
+    if (zBuf[indexZBuf] < z + 1000) {
       //console.log(z);
       // console.log("dz: " + Math.abs(zBuf[indexZBuf]) - Math.abs(z));
       zBuf[indexZBuf] = z;
       return true;
     }
-    console.log("Skipping because  zBuff contains greater value");
+    //console.log("Skipping because  zBuff contains greater value");
     return false;
     // Guess some decent epsilon (which may be >1 despite the name).
 

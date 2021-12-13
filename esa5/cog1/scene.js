@@ -29,7 +29,7 @@ define([
   raster,
   shader,
   framebuffer,
-  data
+  data,
 ) {
   "use strict";
 
@@ -319,7 +319,7 @@ define([
         foundInteractiveNode = true;
         if (displayMatrices) {
           var interactiveNodeLocalModelview = mat4.create(
-            nodes[i].getLocalModelview()
+            nodes[i].getLocalModelview(),
           );
           var interactiveNodeWorldModelview = mat4.create(worldModelview);
         }
@@ -373,7 +373,7 @@ define([
       displayModelViewMatrix(
         scenegraph.getInteractiveNodename(),
         interactiveNodeWorldModelview,
-        interactiveNodeLocalModelview
+        interactiveNodeLocalModelview,
       );
       // Display local transformation vectors.
       displayTransformationVectorsForNode(scenegraph.getInteractiveNode());
@@ -413,8 +413,8 @@ define([
       // Prepare the data of polygon p to pass to scanline.
       var polygon = polygons[p];
       var normal = polygonNormals[p];
-      // var color = modelData.colors[modelData.polygonColors[p]];
-      var color = modelData.colors[1];
+      var color = modelData.colors[modelData.polygonColors[p]];
+      // var color = modelData.colors[1];
 
       if (texture != null) {
         var polygonTextureCoord = modelData.polygonTextureCoord[p];
@@ -443,7 +443,7 @@ define([
           color,
           textureCoord,
           polygonTextureCoord,
-          texture
+          texture,
         );
       } else if (!displayEdges) {
         // Stroke with colored edges.
@@ -532,7 +532,7 @@ define([
     raster.drawLineBresenhamGivenStartEndPoint(
       startPoint,
       endPoint,
-      lineColor3D
+      lineColor3D,
     );
   }
 
@@ -652,7 +652,7 @@ define([
       "translation",
       node.transformation.translate,
       ctx.width - 190,
-      300
+      300,
     );
     displayVector("rotation", node.transformation.rotate, ctx.width - 190, 330);
     displayVector("scale", node.transformation.scale, ctx.width - 190, 360);
@@ -812,7 +812,7 @@ define([
         x,
         y - fontLineHeightInPt,
         clearWidth,
-        1.8 * fontLineHeightInPt
+        1.8 * fontLineHeightInPt,
       );
     }
 
