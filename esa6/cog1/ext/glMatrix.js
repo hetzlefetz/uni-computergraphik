@@ -1688,9 +1688,9 @@ mat4.str = function (mat) {
 };
 
 mat4.shear = function (shear, vec) {
-  var x = vec[0],
-    y = vec[1],
-    z = vec[2];
+  var x = vec[0];
+  var y = vec[1];
+  var z = vec[2];
 
   shear[1] = x;
   shear[2] = x;

@@ -43,7 +43,7 @@ define(["exports", "scene"], function (exports, scene) {
   var resetZBuffer;
 
   // For z buffer. Camera look in -z direction.
-  var maxDistance = Number.MIN_SAFE_INTEGER;
+  var maxDistance = -10000;
   // Background color rgb
   var bgColor = [255, 255, 255, 255];
   // "white";
@@ -90,17 +90,14 @@ define(["exports", "scene"], function (exports, scene) {
       );
     }
     // Initialize the zBuffer.
-    initZBuf();
+    zBufSize = width * height;
+    zBuf = new Float32Array(zBufSize);
+
     initResetBuffer();
 
     // Reset to initialize framebuffer and z-buffer.
     setMaxDirtyRect();
     reset();
-  }
-
-  function initZBuf() {
-    zBufSize = width * height;
-    zBuf = new Float32Array(zBufSize);
   }
 
   function initResetBuffer() {
@@ -131,30 +128,23 @@ define(["exports", "scene"], function (exports, scene) {
     var indexZBuf = y * width + x;
 
     // BEGIN exercise Z-Buffer
-
     // Z-Buffer pixel starts a frame as undefined.
     // The first access on a pixel does not need a test.
-    if (zBuf[indexZBuf] == undefined) {
-      zBuf[indexZBuf] = z;
-      return true;
-    }
     // On z-buffer fights color black should win to emphasize debug edges.
     // Use some small epsilon to determine z-buffer fights
     // in favor of the the polygon processed first or last (depending on sign).
     // Epsilon depends on the z-range of the scene.
-    if (zBuf[indexZBuf] < z + 1000) {
-      //console.log(z);
-      // console.log("dz: " + Math.abs(zBuf[indexZBuf]) - Math.abs(z));
-      zBuf[indexZBuf] = z;
-      return true;
-    }
-    //console.log("Skipping because  zBuff contains greater value");
-    return false;
     // Guess some decent epsilon (which may be >1 despite the name).
 
     // The camera is in the origin looking in negative z-direction.
+    if (zBuf[indexZBuf] > z) {
+      return false;
+    }
+    zBuf[indexZBuf] = z;
 
     // END exercise Z-Buffer
+
+    return true;
   }
 
   /**

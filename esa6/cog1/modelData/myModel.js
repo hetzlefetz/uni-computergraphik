@@ -569,7 +569,7 @@ define(["exports", "data"], function (exports, data) {
       ...thirdTower,
       ...fourthTower,
     ];
-    instance.polygonColors = [1, 1];
+    data.setColorForAllPolygons.call(instance, 8);
     data.applyScale.call(instance, scale);
     return instance;
   };
