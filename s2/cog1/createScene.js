@@ -24,29 +24,127 @@ define(["exports", "scenegraph", "animation"], function (
     const Year = 0.01;
     const Day = 1;
 
+    var sun = scenegraph.createNodeWithModel("Sonne", "sphere", {
+      recursionDepth: 1,
+      scale: 120,
+      color: 5,
+    });
+
+    sun.rotate([-100, -200, 0]);
+
+    var mercury = scenegraph.createNodeWithModel(
+      "Mercury",
+      "sphere",
+      { recursionDepth: 1, scale: 100, color: 0 },
+      sun
+    );
+    mercury.translate([0.39 * AU, 0, 0]);
+    var venus = scenegraph.createNodeWithModel(
+      "Venus",
+      "sphere",
+      { recursionDepth: 1, scale: 100, color: 5 },
+      sun
+    );
+    venus.translate([0.72 * AU, 0, 0]);
+
+    var earth = scenegraph.createNodeWithModel(
+      "Earth",
+      "sphere",
+      { recursionDepth: 1, scale: 100, color: 2 },
+      sun
+    );
+    earth.translate([1 * AU, 0, 0]);
+    var moon = scenegraph.createNodeWithModel(
+      "Moon",
+      "sphere",
+      { recursionDepth: 1, scale: 30, color: 7 },
+      earth
+    );
+    moon.translate([300, 0, 0]);
+
+    var mars = scenegraph.createNodeWithModel(
+      "Mars",
+      "sphere",
+      { recursionDepth: 1, scale: 100, color: 0 },
+      sun
+    );
+    mars.translate([1.524 * AU, 0, 0]);
+    var phobos = scenegraph.createNodeWithModel(
+      "Phobos",
+      "sphere",
+      { recursionDepth: 1, scale: 5, color: 7 },
+      mars
+    );
+    phobos.translate([300, 0, 0]);
+    var deimos = scenegraph.createNodeWithModel(
+      "Deimos",
+      "sphere",
+      { recursionDepth: 1, scale: 3, color: 7 },
+      mars
+    );
+    deimos.translate([250, 0, 0]);
+    var jupiter = scenegraph.createNodeWithModel(
+      "Jupiter",
+      "sphere",
+      { recursionDepth: 1, scale: 100, color: 8 },
+      sun
+    );
+    jupiter.translate([5.203 * AU, 0, 0]);
+    var saturn = scenegraph.createNodeWithModel(
+      "Saturn",
+      "sphere",
+      { recursionDepth: 1, scale: 100, color: 2 },
+      sun
+    );
+    saturn.translate([9.539 * AU, 0, 0]);
+    var uranus = scenegraph.createNodeWithModel(
+      "Uranus",
+      "sphere",
+      { recursionDepth: 1, scale: 100, color: 1 },
+      sun
+    );
+    uranus.translate([19.18 * AU, 0, 0]);
+    var neptune = scenegraph.createNodeWithModel(
+      "Neptune",
+      "sphere",
+      { recursionDepth: 1, scale: 100, color: 4 },
+      sun
+    );
+    neptune.translate([39.53 * AU, 0, 0]);
+    animation.assign(sun, "rotate", { rotationSpeed: [0, 0.2 * Year, 0] });
+
+    animation.assign(mercury, "rotate", { rotationSpeed: [0, 58.7 * Day, 0] });
+    animation.assign(venus, "rotate", { rotationSpeed: [0, 243 * Day, 0] });
+    animation.assign(earth, "rotate", { rotationSpeed: [0, Day, 0] });
+    animation.assign(moon, "rotate", { rotationSpeed: [0, 24 * Day, 0] });
+    animation.assign(mars, "rotate", { rotationSpeed: [0, 1.026 * Day, 0] });
+    animation.assign(phobos, "rotate", { rotationSpeed: [0, 0.03, 0] });
+    animation.assign(deimos, "rotate", { rotationSpeed: [0, 0.03, 0] });
+    animation.assign(jupiter, "rotate", {
+      rotationSpeed: [0, 11, 0.41 * Day, 0],
+    });
+    animation.assign(saturn, "rotate", { rotationSpeed: [0, 0.425 * Day, 0] });
+    animation.assign(uranus, "rotate", {
+      rotationSpeed: [0, 0.62 * Day, 0],
+    });
+    animation.assign(neptune, "rotate", {
+      rotationSpeed: [0, 247.7 * Year, 0],
+    });
+
+    sun.setVisible(true);
+    earth.setVisible(true);
+    moon.setVisible(true);
+    // BEGIN exercise myModel
+
+    // END exercise myModel
+
+    return;
+
     //var cubeNode = scenegraph.createNodeWithModel("cube", "cube", {scale:100, textureURL:"brickWall.jpg"});
     var cubeNode1 = scenegraph.createNodeWithModel("cube 1", "cube", {
       scale: 70,
+      textureURL: "stoneWall.jpg",
     });
-    var cubeNode2 = scenegraph.createNodeWithModel(
-      "cube 2",
-      "cube",
-      {
-        scale: 70,
-      },
-      cubeNode1
-    );
-    var cubeNode3 = scenegraph.createNodeWithModel(
-      "cube 3",
-      "cube",
-      {
-        scale: 70,
-      },
-      cubeNode2
-    );
-    cubeNode2.translate([50, 200, 0]);
-    cubeNode3.translate([50, 200, 0]);
-    return;
     cubeNode1.translate([50, 200, 0]);
     //cubeNode1.rotate([1,1,1]);
     var cubeNode2 = scenegraph.createNodeWithModel("cube 2", "cube", {
